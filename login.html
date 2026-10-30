@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>Masuk Portal — Multimedia SMKM4</title>
+	<link rel="icon" href="logo_MMD.webp">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="theme.css">
+	<link rel="stylesheet" href="login.css">
+	<link rel="stylesheet" href="mobile-fixes.css">
+	<script src="ui.js"></script>
+</head>
+
+<body>
+	<div class="login-page">
+		<!-- Subtle Ambient Orbs -->
+		<div class="floating-orb orb-gold login-orb-1" data-parallax="12"></div>
+		<div class="floating-orb orb-teal login-orb-2" data-parallax="8"></div>
+
+		<div class="login-shell">
+			<!-- Brand Top Header -->
+			<div class="brand" data-reveal="fade">
+				<a href="index.html" class="brand-logo-link" title="Kembali ke Beranda">
+					<img src="logo.png" alt="Logo MMD" width="64" height="64">
+				</a>
+				<div class="auth-hud-badge mono">
+					<span class="pulse-dot green"></span>
+					<span>PORTAL AUTENTIKASI · SMKM4</span>
+				</div>
+			</div>
+
+			<!-- Clean Glassmorphic Login Card -->
+			<div class="login-card glass-panel glow-surface" data-reveal id="loginCard">
+				<div class="login-card-head">
+					<h2>Masuk Dashboard</h2>
+					<p>Gunakan akun terdaftar untuk mengakses data absensi.</p>
+				</div>
+
+				<form onsubmit="handleLogin(event)" id="loginForm">
+					<div class="input-group">
+						<label for="username">Alamat Email</label>
+						<div class="input-field-wrapper">
+							<span class="input-icon">✉</span>
+							<input id="username" type="email" autocomplete="username" required placeholder="nama@gmail.com">
+						</div>
+					</div>
+
+					<div class="input-group">
+						<label for="password">Kata Sandi</label>
+						<div class="input-field-wrapper">
+							<span class="input-icon">🔒</span>
+							<input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+							<button type="button" class="btn-toggle-pwd" id="togglePwd" aria-label="Lihat Password" onclick="togglePasswordVisibility()">
+								👁
+							</button>
+						</div>
+					</div>
+
+					<button id="loginBtn" class="login-submit btn-primary" type="submit" data-magnetic>
+						<span>Masuk Dashboard ↗</span>
+					</button>
+				</form>
+
+				<div class="login-footer">
+					<a class="back-link" href="index.html">← Kembali ke Beranda Utama</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="motion.js"></script>
+	<script type="module" src="auth.js"></script>
+</body>
+
+</html>

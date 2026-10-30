@@ -1,0 +1,202 @@
+/* ==========================================================================
+   PORTAL LOGIN — MULTIMEDIA SMKM4 (REFINED)
+   ========================================================================== */
+
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-orb-1 {
+  width: 400px;
+  height: 400px;
+  top: 8%;
+  left: 12%;
+}
+
+.login-orb-2 {
+  width: 360px;
+  height: 360px;
+  bottom: 8%;
+  right: 12%;
+}
+
+.login-shell {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Brand Header */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.brand-logo-link img {
+  filter: drop-shadow(0 8px 20px rgba(245, 158, 11, 0.2));
+  transition: transform 0.3s var(--ease);
+}
+
+.brand-logo-link:hover img {
+  transform: scale(1.06);
+}
+
+.auth-hud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-pill);
+  font-size: 0.68rem;
+  color: #34d399;
+  letter-spacing: 0.06em;
+}
+
+/* Clean Login Card */
+.login-card {
+  width: 100%;
+  padding: 34px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(14, 14, 22, 0.75);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.login-card-head {
+  margin-bottom: 22px;
+}
+
+.login-card-head h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.login-card-head p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* Form Styles */
+#loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.input-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.15);
+}
+
+.input-icon {
+  padding-left: 14px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.input-field-wrapper input {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+}
+
+.input-field-wrapper input::placeholder {
+  color: var(--muted);
+}
+
+.btn-toggle-pwd {
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease;
+}
+
+.btn-toggle-pwd:hover {
+  color: var(--accent);
+}
+
+/* Submit Button */
+.login-submit {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  font-size: 0.86rem;
+}
+
+.login-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.back-link {
+  font-size: 0.76rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+/* Shake Animation on Error */
+.shake {
+  animation: shake-error 0.5s ease;
+}
+
+@keyframes shake-error {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}

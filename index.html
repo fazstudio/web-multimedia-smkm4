@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>Portal Multimedia — SMKM 4 Jakarta</title>
+	<link rel="icon" href="logo_MMD.webp">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="theme.css">
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="mobile-fixes.css">
+</head>
+
+<body>
+	<!-- Navigation Capsule -->
+	<nav id="mainNav">
+		<a href="index.html" class="logo">
+			<img src="logo_MMD.webp" alt="Logo MMD">
+			<div class="logo-text">
+				<span class="brand-title">Multimedia</span>
+				<span class="brand-sub">SMKM 4 Jakarta</span>
+			</div>
+		</a>
+
+		<ul class="nav-links" id="navLinks">
+			<li><a href="#divisi">Divisi</a></li>
+			<li><a href="#showreel">Showreel</a></li>
+			<li><a href="#galeri">Galeri</a></li>
+			<li><a href="#gear">Alat & Software</a></li>
+			<li class="mobile-member-trigger"><a href="login.html" class="member-btn">Portal Anggota ↗</a></li>
+		</ul>
+
+		<div class="nav-right-actions desktop-only">
+			<a href="login.html" class="member-btn" data-magnetic>Portal Anggota ↗</a>
+		</div>
+
+		<button class="nav-toggle" id="navToggle" aria-label="Buka Menu" aria-expanded="false">
+			<span></span><span></span><span></span>
+		</button>
+	</nav>
+	<div class="nav-backdrop" id="navBackdrop"></div>
+
+	<main>
+		<!-- Hero Section dengan Background Video & Foto Bergabung di Slider -->
+		<section class="hero hero-video-section">
+			<!-- Container Dynamic Background (Video & Foto Campur) -->
+			<div class="hero-bg-container" id="heroBackgroundContainer"></div>
+			<div class="hero-overlay"></div>
+
+			<div class="hero-content-wrapper" data-reveal="fade">
+				<div class="hero-badge">
+					<span class="pulse-dot"></span>
+					<span>STUDIO PRODUKSI & BROADCAST</span>
+				</div>
+				<h1>Kreativitas Sinematik, <br><em>Karya Nyata</em> <br>Multimedia.</h1>
+				<p class="hero-sub">
+					Wadah resmi eksplorasi videografi sinematik, siaran langsung multi-kamera, motion graphics, dan manajemen absensi internal tim <strong>SMK Muhammadiyah 4 Jakarta</strong>
+				</p>
+				<div class="hero-cta-group">
+					<button class="btn-primary" id="btnHeroShowreel" data-magnetic>
+						<span>▶</span> Tonton Showreel
+					</button>
+					<a href="#galeri" class="btn-secondary" data-magnetic>
+						Eksplor Karya <span>↓</span>
+					</a>
+				</div>
+			</div>
+		</section>
+
+		<!-- Metric Strip -->
+		<section class="stats-strip glass-panel" data-reveal>
+			<div class="metric-item">
+				<div class="metric-val display">2026</div>
+				<div class="metric-label mono">Tahun Berdiri</div>
+			</div>
+			<div class="metric-item">
+				<div class="metric-val display">1080p</div>
+				<div class="metric-label mono">Standar Sinematik</div>
+			</div>
+			<div class="metric-item">
+				<div class="metric-val display">Live</div>
+				<div class="metric-label mono">Multi-Camera Broadcast</div>
+			</div>
+			<div class="metric-item">
+				<div class="metric-val display">100%</div>
+				<div class="metric-label mono">Dedikasi Tim</div>
+			</div>
+		</section>
+
+		<!-- Divisi Bento Grid -->
+		<section id="divisi">
+			<div class="section-head" data-reveal>
+				<div>
+					<span class="section-tag mono">KEAHLIAN UTAMA</span>
+					<h2>Eksplorasi Divisi</h2>
+				</div>
+			</div>
+
+			<div class="bento-grid">
+				<div class="bento-card glass-panel glow-surface bento-wide" data-reveal>
+					<div class="bento-header">
+						<span class="bento-badge mono">01 / KINEMATOGRAFI</span>
+						<span class="bento-sub mono">1080p PRODUCTION</span>
+					</div>
+					<h3>Film & Sinematografi</h3>
+					<p>Eksplorasi pembuatan film pendek, dokumenter, video komersial, hingga tata cahaya panggung profesional dengan standar sinematik tinggi.</p>
+					<div class="pill-tags">
+						<span class="tag">Color Grading</span>
+						<span class="tag">Directing</span>
+						<span class="tag">Cinematography</span>
+						<span class="tag">Audio Design</span>
+					</div>
+				</div>
+
+				<div class="bento-card glass-panel glow-surface" data-reveal>
+					<div class="bento-header">
+						<span class="bento-badge mono">02 / LIVE BROADCAST</span>
+					</div>
+					<h3>Multi-Cam & Streaming</h3>
+					<p>Manajemen sistem siaran langsung acara sekolah, webinar, dan event besar menggunakan hardware switcher dan OBS Studio.</p>
+					<div class="pill-tags">
+						<span class="tag">ATEM Switcher</span>
+						<span class="tag">OBS Studio</span>
+						<span class="tag">Signal Routing</span>
+					</div>
+				</div>
+
+				<div class="bento-card glass-panel glow-surface" data-reveal>
+					<div class="bento-header">
+						<span class="bento-badge mono">03 / VISUAL & LENSA</span>
+					</div>
+					<h3>Fotografi</h3>
+					<p>Mengabadikan momen, ekspresi, dan narasi visual di setiap sudut acara sekolah maupun proyek kreatif menggunakan teknik pencahayaan dan komposisi profesional.</p>
+					<div class="pill-tags">
+						<span class="tag">Composition</span>
+						<span class="tag">Lighting</span>
+						<span class="tag">Event Coverage</span>
+						<span class="tag">Editing</span>
+					</div>
+				</div>
+
+				<div class="bento-card glass-panel glow-surface bento-wide" data-reveal>
+					<div class="bento-header">
+						<span class="bento-badge mono">04 / MANAJEMEN PORTAL</span>
+						<span class="bento-sub mono">INTEGRATED SYSTEM</span>
+					</div>
+					<h3>Sistem Absensi & Database Tim</h3>
+					<p>Platform terintegrasi berbasis cloud untuk memantau tingkat kehadiran, rekapitulasi kegiatan harian, dan evaluasi kedisiplinan anggota secara real-time.</p>
+					<div class="pill-tags">
+						<span class="tag">Realtime Firestore</span>
+						<span class="tag">Excel Export</span>
+						<span class="tag">Role-Based Access</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Featured Showreel -->
+		<section id="showreel">
+			<div class="section-head" data-reveal>
+				<div>
+					<span class="section-tag mono">TAMPILAN UTAMA</span>
+					<h2>Showreel Showcase</h2>
+				</div>
+				<p class="section-desc">Kompilasi cuplikan karya video sinematik dan dokumentasi event terbaik.</p>
+			</div>
+
+			<div class="showreel-grid">
+				<!-- Showreel 1 -->
+				<div class="featured-video-card glass-panel" data-reveal>
+					<div class="video-container">
+						<iframe src="https://www.youtube.com/embed/vdVxMLUVvTo" title="Showreel Multimedia SMKM4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div>
+					<div class="video-info">
+						<div class="video-meta">
+							<span class="video-tag">Official Reel</span>
+							<span>Durasi: 02:45 min</span>
+						</div>
+						<h3>Showreel Produksi & Siaran Langsung 2026</h3>
+						<p>Menampilkan kompilasi karya terbaik dari divisi sinematografi, liputan event resmi sekolah, hingga penataan panggung multi-kamera.</p>
+					</div>
+				</div>
+
+				<!-- Showreel 2 -->
+				<div class="featured-video-card glass-panel" data-reveal>
+					<div class="video-container">
+						<iframe src="https://www.youtube.com/embed/wUtTCPe6WV0" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+					</div>
+					<div class="video-info">
+						<div class="video-meta">
+							<span class="video-tag">Film</span>
+							<span>Durasi: 03:10 min</span>
+						</div>
+						<h3>Film satu langkah</h3>
+						<p>Di tengah kesibukan kota dan lalu lalang orang-orang yang tampak memiliki arah tujuan jelas, seorang pemuda merasa kebingungan dan ragu akan masa depannya setelah lulus nanti[cite: 25].</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Galeri Proyek -->
+		<section id="galeri">
+			<div class="section-head" data-reveal>
+				<div>
+					<span class="section-tag mono">ARSIP KARYA</span>
+					<h2>Galeri Proyek Pilihan</h2>
+				</div>
+				<div class="gallery-filters" data-reveal>
+					<button class="filter-chip active" data-filter="all">Semua</button>
+					<button class="filter-chip" data-filter="film">Film & Sinema</button>
+					<button class="filter-chip" data-filter="broadcast">Broadcast</button>
+					<button class="filter-chip" data-filter="design">Desain & Motion</button>
+				</div>
+			</div>
+
+			<div class="gallery-grid">
+				<div class="gallery-item glass-panel glow-surface" data-category="foto" data-reveal data-gdrive="https://drive.google.com/drive/folders/1xSplbojET27e0-wBBV2wN_0Ldo286Xfp?usp=drive_link">
+					<div class="gallery-thumb-wrapper">
+						<img src="IMG_1.webp" alt="Produksi Film Pendek" loading="lazy">
+					</div>
+					<div class="gallery-caption">
+						<span class="category-badge mono">Fotografi</span>
+						<h4>Foto Paskibraka SMKM4</h4>
+						<p>Eksplorasi penataan cahaya dramatis dan pengambilan gambar menggunakan rig kamera 4K.</p>
+					</div>
+				</div>
+
+				<div class="gallery-item glass-panel glow-surface" data-category="broadcast" data-reveal data-gdrive="#">
+					<div class="gallery-thumb-wrapper">
+						<img src="lack.png" alt="Live Streaming Event" loading="lazy">
+						<div class="coming-soon-badge">Mendatang</div>
+					</div>
+					<div class="gallery-caption">
+						<span class="category-badge mono">Broadcast</span>
+						<h4>Setup Siaran Langsung Wisuda</h4>
+						<p>Konfigurasi multi-kamera switch dan audio mixing lapangan secara seamless.</p>
+					</div>
+				</div>
+
+				<div class="gallery-item glass-panel glow-surface" data-category="design" data-reveal data-gdrive="#">
+					<div class="gallery-thumb-wrapper">
+						<img src="lack.png" alt="Motion Graphics" loading="lazy">
+						<div class="coming-soon-badge">Mendatang</div>
+					</div>
+					<div class="gallery-caption">
+						<span class="category-badge mono">Desain & Motion</span>
+						<h4>Animasi Motion Graphics Identitas</h4>
+						<p>Perancangan bumper video dan lower thirds interaktif untuk tayangan siaran.</p>
+					</div>
+				</div>
+
+				<div class="gallery-item glass-panel glow-surface" data-category="film" data-reveal data-gdrive="#">
+					<div class="gallery-thumb-wrapper">
+						<img src="lack.png" alt="Dokumenter Sekolah" loading="lazy">
+						<div class="coming-soon-badge">Mendatang</div>
+					</div>
+					<div class="gallery-caption">
+						<span class="category-badge mono">Film & Sinema</span>
+						<h4>Dokumenter Profil Sekolah</h4>
+						<p>Perekaman aktivitas pembelajaran berbasis kejuruan dengan narasi visual mendalam.</p>
+					</div>
+				</div>
+
+				<div class="gallery-item glass-panel glow-surface" data-category="broadcast" data-reveal data-gdrive="#">
+					<div class="gallery-thumb-wrapper">
+						<img src="lack.png" alt="Talkshow Studio" loading="lazy">
+						<div class="coming-soon-badge">Mendatang</div>
+					</div>
+					<div class="gallery-caption">
+						<span class="category-badge mono">Broadcast</span>
+						<h4>Produksi Talkshow Podcast Studio</h4>
+						<p>Manajemen tata suara multi-mic dan integrasi switcher video berbasis NDI.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Gear & Software Suite -->
+		<section id="gear">
+			<div class="section-head" data-reveal>
+				<div>
+					<span class="section-tag mono">INFRASTRUKTUR TEKNIS</span>
+					<h2>Perangkat & Software Suite</h2>
+				</div>
+				<p class="section-desc">Standar peralatan keras dan perangkat lunak profesional yang digunakan dalam setiap produksi.</p>
+			</div>
+
+			<div class="gear-grid">
+				<div class="gear-column glass-panel" data-reveal="left">
+					<div class="gear-header">
+						<h3 class="mono">HARDWARE & PERIPHERALS</h3>
+					</div>
+					<ul class="gear-list">
+						<li>
+							<strong>Kamera DSLR</strong>
+							<span>Dilengkapi lensa dan filter.</span>
+						</li>
+						<li>
+							<strong>Hardware Video Switcher & Capture Card</strong>
+							<span>Untuk kestabilan data siaran langsung multi-kamera tanpa delay.</span>
+						</li>
+						<li>
+							<strong>Audio Mixer & Wireless Lavalier Mic</strong>
+							<span>Menjamin kejernihan rekaman suara di dalam maupun luar ruangan.</span>
+						</li>
+					</ul>
+				</div>
+
+				<div class="gear-column glass-panel" data-reveal="right">
+					<div class="gear-header">
+						<h3 class="mono">SOFTWARE & ECOSYSTEM</h3>
+					</div>
+					<ul class="gear-list">
+						<li>
+							<strong>Capcut & Lightroom</strong>
+							<span>Pusat pengeditan video, efek visual, dan grading warna profesional.</span>
+						</li>
+						<li>
+							<strong>OBS Studio & vMix</strong>
+							<span>Aplikasi penyiaran utama untuk live streaming multi-input.</span>
+						</li>
+						<li>
+							<strong>Canva</strong>
+							<span>Digunakan untuk produksi konten cepat dan desain aset grafis harian.</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA Portal Anggota -->
+		<section class="cta-section" data-reveal>
+			<div class="cta-card glass-panel">
+				<span class="cta-badge mono">PORTAL INTERNAL TIM</span>
+				<h2>Akses Sistem Kehadiran & Anggota</h2>
+				<p>Masuk ke dashboard sistem absensi terintegrasi untuk melihat rekapitulasi kehadiran dan mengelola data kegiatan divisi.</p>
+				<div class="cta-actions">
+					<a href="login.html" class="btn-primary" data-magnetic>
+						Masuk ke Portal Absensi ↗
+					</a>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-inner">
+			<div>
+				<div class="logo">
+					<img src="logo_MMD.webp" alt="Logo">
+					<div class="logo-text">
+						<span class="brand-title">Multimedia SMKM4</span>
+						<span class="brand-sub">Pusat Inovasi Visual & Penyiaran</span>
+					</div>
+				</div>
+				<p class="footer-desc">
+					Wadah resmi pengembangan bakat videografi, penyiaran, dan teknologi multimedia SMK Muhammadiyah 4 Jakarta.
+				</p>
+			</div>
+			<div class="footer-links-col">
+				<h4 class="mono">Navigasi Utama</h4>
+				<ul>
+					<li><a href="#divisi">Divisi Keahlian</a></li>
+					<li><a href="#showreel">Showreel Video</a></li>
+					<li><a href="#galeri">Galeri Proyek</a></li>
+					<li><a href="#gear">Alat & Software</a></li>
+				</ul>
+			</div>
+			<div class="footer-links-col">
+				<h4 class="mono">Sistem Portal</h4>
+				<ul>
+					<li><a href="login.html">Login Administrator</a></li>
+					<li><a href="dashboard-absen.html">Dashboard Rekap</a></li>
+					<li><a href="#">Panduan Akses</a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom mono">
+			&copy; 2026 Multimedia SMKM 4 Jakarta. All rights reserved.
+		</div>
+	</footer>
+
+	<!-- Modals -->
+	<div class="modal-overlay" id="showreelModal">
+		<div class="modal-content modal-video glass-panel">
+			<button class="modal-close" id="showreelClose" aria-label="Tutup">✕</button>
+			<div class="modal-video-container">
+				<iframe id="showreelIframe" src="" title="Showreel Player" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-overlay" id="photoModal">
+		<div class="modal-content glass-panel">
+			<button class="modal-close" id="modalClose" aria-label="Tutup">✕</button>
+			<div class="modal-img-box">
+				<img id="modalImg" src="" alt="Preview Proyek">
+			</div>
+			<div class="modal-body">
+				<div class="modal-text">
+					<span class="category-badge mono" id="modalCategory">Kategori</span>
+					<h3 id="modalTitle">Judul Proyek</h3>
+					<p id="modalDesc">Deskripsi lengkap proyek multimedia.</p>
+				</div>
+				<a href="#" id="modalLink" target="_blank" class="btn-primary" style="font-size:0.75rem; padding:8px 16px;">Lihat File Asli ↗</a>
+			</div>
+		</div>
+	</div>
+
+	<script src="motion.js"></script>
+	<script src="app.js"></script>
+</body>
+
+</html>

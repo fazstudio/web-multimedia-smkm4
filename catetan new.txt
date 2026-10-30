@@ -1,0 +1,57 @@
+# Konsep Sistem Absensi Baru (Firestore-Based)   tgl (03/10/26 jam 08:00)
+
+Dokumentasi rancangan alur dan arsitektur fitur absensi berbasis web menggunakan Firebase Firestore.
+
+## 1. Master Anggota (Database Anggota)
+Modul untuk manajemen data pokok seluruh anggota agar terpusat dan dinamis.
+* **Akses Admin:** Menyediakan halaman/modal khusus untuk manajemen data.
+* **Fitur Utama:** 
+  * Tambah anggota baru.
+  * Hapus data anggota.
+* **Penyimpanan:** Data nama dan informasi anggota tersimpan otomatis di **Firestore** (koleksi `members`).
+* **Keuntungan:** Input absensi tidak perlu mengetik nama secara manual lagi.
+
+---
+
+## 2. Master Sesi / Kegiatan
+Modul untuk menginisialisasi jadwal pertemuan atau *job* baru secara otomatis.
+* **Akses Admin:** Tombol *"Buat Pertemuan/Job Baru"* di *navigation bar* bagian atas.
+* **Alur Pembuatan:**
+  1. Admin memilih tanggal kegiatan.
+  2. Admin memilih kategori kegiatan.
+  3. Admin memasukkan nama kegiatan.
+* **Eksekusi Otomatis:** Sistem akan men-generate daftar hadir untuk seluruh anggota yang aktif terdaftar di database `members`.
+
+---
+
+## 3. Form Absen (Interaksi Cepat / *Click-to-Update*)
+Antarmuka pencatatan kehadiran yang efisien dan minim *effort*.
+* **Alur Penggunaan:** Admin atau anggota membuka sesi kegiatan yang aktif, lalu memperbarui status kehadiran.
+* **Opsi Status:** 
+  * **Hadir**
+  * **Izin**
+  * **Alpha**
+* **Optimasi UX:** Default status kehadiran diset **Hadir** untuk semua anggota secara otomatis. Admin/petugas tinggal mengubah status anggota yang berhalangan saja (Izin/Alpha).
+
+tgl (03/10/26 jam 10:00)
+
+============================================================
+CATATAN PERUBAHAN & FITUR BARU — PORTAL ABSENSI MULTIMEDIA SMKM4
+============================================================
+
+1. SECTION / KARTU PERTEMUAN (QUICK MEETING CARDS)
+   - Menambahkan section khusus di atas tabel utama berisi daftar tombol tanggal/pertemuan dalam bulan berjalan.
+   - Memudahkan admin dan member untuk melihat rekap absensi per tanggal/pertemuan secara instan tanpa harus pusing pakai dropdown filter yang menumpuk.
+
+2. FORMULIR PEMBUATAN SESI INTERAKTIF (MANUAL CHECKLIST PER ANGGOTA)
+   - Saat admin membuka drawer "Buat Sesi / Job", sistem akan menarik seluruh daftar anggota dari koleksi master (`members`).
+   - Di bawah input kategori dan tanggal, akan muncul daftar nama seluruh anggota secara dinamis.
+   - Di samping tiap nama anggota, tersedia tombol pilihan ganda (3 opsi status):
+     * HADIR: Indikator tombol berwarna hijau saat dipilih.
+     * IZIN: Indikator tombol berwarna kuning/oranye saat dipilih.
+     * ALPHA: Indikator tombol berwarna merah saat dipilih.
+   - Admin dapat langsung menentukan status kehadiran setiap anak secara manual sebelum tombol simpan/generate ditekan.
+
+3. KONSISTENSI DATA & ANTARMUKA
+   - Memastikan perhitungan tingkat kehadiran dan statistik bersih dari bug (jika data kosong/0 sesi, persentase otomatis 0%).
+   - Mempertahankan fitur Master Anggota dan tombol ganti status instan (🔄) di dalam tabel utama.

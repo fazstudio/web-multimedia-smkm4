@@ -1,0 +1,261 @@
+/* ==========================================================================
+   MOBILE FIXES — Portal Multimedia SMKM4
+   Muat file ini PALING TERAKHIR di <head> (setelah style.css / login.css /
+   dashboard.css) supaya menang urutan cascade tanpa perlu !important.
+
+   SEMUA aturan ada di dalam satu @media (max-width: 768px).
+   Di layar >= 769px (laptop/PC) file ini tidak punya efek sama sekali.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+  /* ------------------------------------------------------------------------
+     1. NAV DRAWER (index.html)
+     BUG: <nav> punya `backdrop-filter` + `transform`. Dua properti itu
+     membuat <nav> menjadi "containing block" untuk anak ber-`position: fixed`.
+     Akibatnya .nav-links (fixed, top:0, right:0, height:100dvh) tidak
+     menempel ke layar, tapi ke kapsul nav — posisinya geser & ikut hilang
+     saat halaman di-scroll.
+     FIX: cabut kedua properti itu dari <nav> (khusus mobile). Efek blur
+     dipindah ke pseudo-element ::before, yang tidak punya anak sehingga
+     tidak mempengaruhi .nav-links. Centering diganti left + width biasa.
+     ------------------------------------------------------------------------ */
+  nav {
+    left: 16px;
+    width: calc(100% - 32px);
+    transform: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  nav::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;                 /* di belakang isi nav, di atas background-nya */
+    border-radius: inherit;      /* ikut bentuk kapsul */
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+
+  /* Panel drawer (z-index 76) menutupi tombol hamburger, jadi ikon "X" tidak
+     terlihat/terklik. Naikkan tombol di atas panel + ukuran tap 44px. */
+  .nav-toggle {
+    position: relative;
+    z-index: 77;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Kunci scroll halaman saat menu terbuka (class dipasang oleh app.js) dan
+     beri ruang aman bawah + scroll kalau layar pendek. */
+  body.mobile-menu-open {
+    overflow: hidden;
+  }
+
+  .nav-links {
+    overflow-y: auto;
+    padding-bottom: calc(24px + var(--safe-b));
+  }
+
+  /* ------------------------------------------------------------------------
+     2. LIGHTBOX MODAL (index.html)
+     BUG: modal tidak punya batas tinggi; di HP landscape/pendek, bagian
+     bawah (judul + tombol Drive) terpotong karena overflow: hidden.
+     FIX: batasi tinggi dengan dvh dan izinkan scroll di dalam modal.
+     ------------------------------------------------------------------------ */
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-content {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .modal-img-box img {
+    max-height: 45dvh;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-close {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* ------------------------------------------------------------------------
+     3. DASHBOARD — HEADER & KONTROL (dashboard-absen.html)
+     BUG: <select> di dalam grid 2 kolom punya lebar intrinsik = opsi
+     terpanjang ("Semua Pertemuan Bulan Ini"). Grid item default min-width:
+     auto, jadi kolom melebar dan header meluber ke samping.
+     FIX: min-width: 0 pada item grid + select width: 100% + ellipsis.
+     ------------------------------------------------------------------------ */
+  .dashboard-page {
+    padding-left: max(14px, var(--safe-l));
+    padding-right: max(14px, var(--safe-r));
+    padding-bottom: calc(50px + var(--safe-b));
+  }
+
+  .header-brand,
+  .header-title-box {
+    min-width: 0;
+  }
+
+  .header-clock {
+    overflow-wrap: anywhere;
+  }
+
+  .control-row > * {
+    min-width: 0;
+  }
+
+  .select-wrapper select {
+    width: 100%;
+    text-overflow: ellipsis;
+  }
+
+  /* Target sentuh minimal 44px (rekomendasi Apple HIG / WCAG 2.5.5). */
+  .select-wrapper select,
+  .search-box,
+  .btn-download,
+  .btn-open-drawer,
+  .logout-btn {
+    min-height: 44px;
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ------------------------------------------------------------------------
+     4. iOS AUTO-ZOOM
+     BUG: input/select dengan font-size < 16px membuat iOS Safari zoom-in
+     otomatis saat difokus, dan halaman tidak zoom-out sendiri.
+     FIX: paksa 16px — hanya di mobile, desktop tetap ukuran lama.
+     ------------------------------------------------------------------------ */
+  .search-box input,
+  .select-wrapper select,
+  .form-group input,
+  .form-group select,
+  .input-field-wrapper input {
+    font-size: 16px;
+  }
+
+  /* ------------------------------------------------------------------------
+     5. DASHBOARD — TAB STATUS & KARTU DATA
+     ------------------------------------------------------------------------ */
+  /* Tab 4 buah pecah jadi barisan tak rata; rapikan jadi grid 2x2. */
+  .status-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+
+  .status-tab {
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
+  /* Nama panjang mendorong badge status keluar kartu. Anak flex harus
+     boleh menyusut (min-width: 0) baru teks mau membungkus. */
+  .mobile-card-top .member-cell {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .member-name,
+  .session-date,
+  .session-tag-badge {
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-card-top .status-pill {
+    flex-shrink: 0;
+  }
+
+  .session-tag-badge {
+    max-width: 100%;
+  }
+
+  .mobile-card-actions {
+    gap: 10px;
+  }
+
+  .mobile-card-actions .btn-edit,
+  .mobile-card-actions .btn-delete {
+    flex: 1;
+    min-height: 44px;
+    font-size: 0.82rem;
+  }
+
+  /* ------------------------------------------------------------------------
+     6. DRAWER INPUT ADMIN
+     ------------------------------------------------------------------------ */
+  .drawer-panel {
+    padding: 24px 20px calc(24px + var(--safe-b));
+    overscroll-behavior: contain;
+  }
+
+  .drawer-close-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    min-height: 44px;
+  }
+
+  /* ------------------------------------------------------------------------
+     7. TOAST & MODAL KONFIRMASI (theme.css, dipakai login + dashboard)
+     BUG: toast menempel right: 24px tanpa batas kiri, lebarnya mengikuti
+     teks; pesan error panjang terlihat sempit/mepet tepi dan menabrak
+     home-indicator iPhone.
+     FIX: bentangkan penuh dengan margin 12px + safe-area bawah.
+     ------------------------------------------------------------------------ */
+  #toastStack {
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + var(--safe-b));
+  }
+
+  .toast {
+    width: 100%;
+  }
+
+  .toast .msg {
+    overflow-wrap: anywhere;
+  }
+
+  .confirm-box {
+    padding: 22px 18px;
+  }
+
+  .confirm-actions > * {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  /* ------------------------------------------------------------------------
+     8. LOGIN (login.html)
+     ------------------------------------------------------------------------ */
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .btn-toggle-pwd {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .login-submit {
+    min-height: 48px;
+  }
+}
