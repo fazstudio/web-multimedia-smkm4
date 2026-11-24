@@ -40,7 +40,13 @@
 					<p>Gunakan akun terdaftar untuk mengakses data absensi.</p>
 				</div>
 
-				<button id="loginBtn" class="login-submit btn-primary" type="button" onclick="handleGoogleLogin()" data-magnetic>
+				<button type="button" id="loginBtn" class="btn-primary login-submit btn-google" onclick="handleGoogleLogin()" data-magnetic>
+					<svg class="google-g-icon" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+						<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.26-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.61z"/>
+						<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/>
+						<path fill="#FBBC05" d="M3.97 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.04l3.01-2.33z"/>
+						<path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+					</svg>
 					<span>Masuk dengan Google</span>
 				</button>
 
@@ -49,16 +55,17 @@
 				</div>
 			</div>
 
-			<div class="login-card glass-panel glow-surface" id="pendingAuthCard" hidden>
+			<div class="login-card glass-panel pending-card" id="pendingAuthCard" hidden>
 				<div class="login-card-head">
-					<h2>Menunggu Persetujuan</h2>
-					<p>Akun Anda belum terdaftar / menunggu persetujuan Admin.</p>
+					<span class="pending-warning-badge mono">MENUNGGU AKSES</span>
+					<h2>Akun Anda Tidak Terdaftar</h2>
+					<p>Akses Anda harus disetujui oleh Admin Multimedia SMKM4. Kirim permintaan melalui Instagram untuk mempercepat verifikasi.</p>
 				</div>
 				<a class="login-submit btn-primary" href="https://instagram.com/multimedia.smkm4jkt" target="_blank" rel="noopener noreferrer">
-					<span>DM Instagram @multimedia.smkm4jkt</span>
+					<span>Minta Akses via DM IG @multimedia.smkm4jkt</span>
 				</a>
-				<button class="login-submit btn-secondary" type="button" onclick="logoutPendingUser()" style="margin-top: 10px;">
-					<span>Keluar / Ganti Akun</span>
+				<button class="login-submit btn-secondary" type="button" onclick="logoutPendingUser()">
+					<span>Keluar / Ganti Akun Google</span>
 				</button>
 			</div>
 		</div>

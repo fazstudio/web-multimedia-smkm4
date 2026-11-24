@@ -1125,6 +1125,7 @@ window.terimaPermintaan = async (uid, memberId) => {
       role: "anggota",
       memberId: memberId || null
     });
+    await window.loadAccounts(true);
     notify("Permintaan akses diterima.", "success");
   } catch (err) {
     console.error(err);

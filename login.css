@@ -173,6 +173,44 @@
   cursor: not-allowed;
 }
 
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.google-g-icon {
+  flex: 0 0 auto;
+  display: block;
+}
+
+.pending-card {
+  border-color: rgba(244, 63, 94, 0.28);
+  text-align: center;
+}
+
+.pending-card .login-card-head {
+  margin-bottom: 16px;
+}
+
+.pending-card .login-submit + .login-submit {
+  margin-top: 10px;
+}
+
+.pending-warning-badge {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(244, 63, 94, 0.32);
+  background: rgba(244, 63, 94, 0.12);
+  color: #fb7185;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
 .login-footer {
   margin-top: 22px;
   padding-top: 14px;

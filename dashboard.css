@@ -98,6 +98,51 @@ body[data-role="admin"] .role-badge {
   margin-top: 3px;
 }
 
+.notif-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 63, 94, 0.55);
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.notif-badge[hidden] {
+  display: none;
+}
+
+.pending-banner {
+  margin: -8px 0 24px;
+  padding: 12px 16px;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(244, 63, 94, 0.1);
+  color: #fb7185;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pending-banner[hidden] {
+  display: none;
+}
+
+.pending-access-box {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(244, 63, 94, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(244, 63, 94, 0.04);
+}
+
 /* Header Right Actions & Search */
 .header-right-tools {
   display: flex;
