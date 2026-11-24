@@ -3,10 +3,12 @@ import {
   getFirestore,
   collection,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   query,
   orderBy,
@@ -40,9 +42,14 @@ let membersCache = [];
 let currentStatusFilter = "semua";
 let currentSelectedPeriod = "semua";
 let pendingDeleteTanggal = null;
+let currentUser = null;
+let accountsCache = [];
+let accountsLoaded = 0;
 
 // Logout Function
 window.logoutPortal = async () => {
+  window.tutupScanner?.();
+  window.tutupQrSaya?.();
   await signOut(auth).catch(() => {});
   localStorage.removeItem("role");
   location.href = "index.html";
@@ -197,6 +204,7 @@ window.bukaModalAnggota = () => {
   document.getElementById("memberDrawer")?.classList.add("is-open");
   document.body.style.overflow = "hidden";
   window.renderListAnggotaModal();
+  window.loadAccounts();
 };
 
 window.tutupModalAnggota = () => {
@@ -280,9 +288,11 @@ onAuthStateChanged(auth, async (user) => {
 
     localStorage.setItem("role", role);
     document.body.dataset.role = role;
+    currentUser = user;
 
     if (role === "member") {
       document.querySelector(".admin-drawer")?.remove();
+      document.getElementById("scanOverlay")?.remove();
       document.querySelectorAll(".admin-only-btn").forEach((el) => el.remove());
       setText("roleLabel", "MEMBER / READ ONLY");
     } else {
@@ -316,6 +326,7 @@ function boot() {
     membersCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     if (typeof window.renderListAnggotaModal === "function") window.renderListAnggotaModal();
     if (typeof window.renderFormMembers === "function") window.renderFormMembers();
+    window.renderAccountList?.();
   });
 
   const q = query(collection(db, "absensi"), orderBy("createdAt", "desc"));
@@ -324,6 +335,7 @@ function boot() {
     (snap) => {
       cache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderMeetingCards();
+      window.refreshScanSessions?.();
     },
     (err) => {
       console.error(err);
@@ -955,3 +967,591 @@ window.unduhRekap = async () => {
     }
   }
 };
+
+/* ==========================================================================
+   ABSENSI QR DINAMIS 30 DETIK, KUNCI PERANGKAT, PEMINDAI + INPUT MANUAL
+   ========================================================================== */
+const QR_STEP_MS = 30000;
+const QRGEN_SRC = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";
+const JSQR_SRC = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+const DEVICE_KEY = "mmd_device_id";
+const IN_APP_RE = /WhatsApp|Instagram|FBAN|FBAV|\bLine\b|\bwv\b/i;
+
+const $id = (id) => document.getElementById(id);
+const pad2 = (n) => String(n).padStart(2, "0");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const withTimeout = (p, ms) =>
+  Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("timeout"), { code: "timeout" })), ms))]);
+const qrStep = (t = Date.now()) => Math.floor(t / QR_STEP_MS);
+const newToken = () =>
+  Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+const slug = (s) =>
+  String(s ?? "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "x";
+const localDate = (d = new Date()) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const clockStr = (d = new Date()) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+const isInAppBrowser = () => IN_APP_RE.test(navigator.userAgent || "");
+
+const scriptCache = new Map();
+const loadScript = (src) => {
+  if (!scriptCache.has(src)) {
+    scriptCache.set(
+      src,
+      new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => { scriptCache.delete(src); reject(new Error("Gagal memuat pustaka pendukung.")); };
+        document.head.appendChild(s);
+      })
+    );
+  }
+  return scriptCache.get(src);
+};
+
+const errText = (e) => {
+  const code = String(e?.code || e?.name || "");
+  if (code.includes("permission-denied")) return "Akses ditolak oleh aturan keamanan.";
+  if (code.includes("unavailable") || code.includes("network")) return "Jaringan tidak tersedia.";
+  if (code === "NotAllowedError") return "Izin kamera ditolak.";
+  if (code === "NotFoundError" || code === "OverconstrainedError") return "Kamera tidak ditemukan.";
+  return e?.message || "Terjadi kesalahan.";
+};
+
+const notify = (msg, type = "info") => {
+  if (window.toast) window.toast(msg, type);
+  else alert(msg);
+};
+
+const accountName = (u) => {
+  const member = u.memberId ? membersCache.find((m) => m.id === u.memberId) : null;
+  return normalizeText(
+    member?.nama || u.nama || u.name || u.displayName || (u.email ? String(u.email).split("@")[0] : "") || u.uid || ""
+  );
+};
+
+/* ---------- Akun & perangkat (Admin) ---------- */
+window.loadAccounts = async (force = false) => {
+  if (role !== "admin") return;
+  if (force || !accountsLoaded || Date.now() - accountsLoaded > 120000) {
+    try {
+      const snap = await getDocs(collection(db, "users"));
+      accountsCache = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+      accountsLoaded = Date.now();
+    } catch (err) {
+      console.error(err);
+      notify("Gagal memuat daftar akun.", "error");
+    }
+  }
+  window.renderAccountList();
+};
+
+window.renderAccountList = () => {
+  const container = $id("accountManageList");
+  if (!container) return;
+  setText("totalAccountsCount", String(accountsCache.length));
+  if (!accountsCache.length) {
+    container.innerHTML = '<div class="empty-row" style="padding: 20px;">Belum ada akun terdaftar.</div>';
+    return;
+  }
+  const list = [...accountsCache].sort((a, b) => accountName(a).localeCompare(accountName(b), "id"));
+  container.innerHTML = "";
+  list.forEach((u) => {
+    const row = document.createElement("div");
+    row.className = "account-row";
+
+    const info = document.createElement("div");
+    info.className = "account-info";
+    const name = document.createElement("span");
+    name.className = "member-item-name";
+    name.textContent = accountName(u);
+    const meta = document.createElement("span");
+    meta.className = "account-meta mono";
+    meta.textContent = `${u.email || u.uid} · ${u.role || "-"}`;
+    const badge = document.createElement("span");
+    badge.className = `device-badge mono ${u.deviceId ? "is-locked" : ""}`;
+    badge.textContent = u.deviceId ? "Perangkat terkunci" : "Belum ada perangkat";
+    info.append(name, meta, badge);
+
+    const link = document.createElement("select");
+    link.className = "account-link";
+    link.setAttribute("aria-label", `Tautkan ${accountName(u)} ke anggota`);
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = "Tautkan ke anggota…";
+    link.appendChild(none);
+    membersCache.forEach((m) => {
+      const o = document.createElement("option");
+      o.value = m.id;
+      o.textContent = normalizeText(m.nama);
+      if (u.memberId === m.id) o.selected = true;
+      link.appendChild(o);
+    });
+    link.addEventListener("change", () => window.tautkanAnggota(u.uid, link.value));
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-delete account-reset";
+    btn.textContent = "Reset Perangkat";
+    btn.addEventListener("click", () => window.resetPerangkat(u.uid));
+
+    row.append(info, link, btn);
+    container.appendChild(row);
+  });
+};
+
+window.tautkanAnggota = async (uid, memberId) => {
+  if (role !== "admin") return;
+  try {
+    await updateDoc(doc(db, "users", uid), { memberId: memberId || null });
+    const acc = accountsCache.find((u) => u.uid === uid);
+    if (acc) acc.memberId = memberId || null;
+    window.renderAccountList();
+    notify("Tautan anggota disimpan.", "success");
+  } catch (err) {
+    console.error(err);
+    notify(errText(err), "error");
+    window.renderAccountList();
+  }
+};
+
+window.resetPerangkat = async (uid) => {
+  if (role !== "admin") return;
+  const acc = accountsCache.find((u) => u.uid === uid);
+  if (!confirm(`Reset perangkat ${acc ? accountName(acc) : "akun ini"}? Perangkat terdaftar dilepas dan token QR diganti.`)) return;
+  try {
+    await updateDoc(doc(db, "users", uid), { deviceId: null, qrToken: newToken() });
+    if (acc) { acc.deviceId = null; delete acc.qrToken; }
+    window.renderAccountList();
+    notify("Perangkat direset. Anggota dapat mendaftarkan perangkat baru lewat QR Saya.", "success");
+  } catch (err) {
+    console.error(err);
+    notify(errText(err), "error");
+  }
+};
+
+/* ---------- QR Saya (anggota) ---------- */
+const QRT = { timer: null };
+const stopQrTimer = () => { clearInterval(QRT.timer); QRT.timer = null; };
+const qrAlert = (msg) => `<div class="qr-alert" role="alert">${safe(msg)}</div>`;
+
+const syncQrBlur = () => {
+  $id("qrWrap")?.classList.toggle("is-blurred", document.hidden || !document.hasFocus());
+};
+document.addEventListener("visibilitychange", syncQrBlur);
+window.addEventListener("blur", syncQrBlur);
+window.addEventListener("focus", syncQrBlur);
+
+const getDeviceId = () => {
+  try {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : newToken() + newToken();
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+};
+
+const qrDrawerOpen = () => $id("qrDrawer")?.classList.contains("is-open");
+
+window.bukaQrSaya = () => {
+  $id("qrDrawer")?.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  renderQrSaya();
+};
+
+window.tutupQrSaya = () => {
+  stopQrTimer();
+  $id("qrDrawer")?.classList.remove("is-open");
+  if (!$id("scanOverlay")?.classList.contains("is-open")) document.body.style.overflow = "";
+};
+
+async function renderQrSaya() {
+  const body = $id("qrBody");
+  if (!body || !currentUser) return;
+  stopQrTimer();
+
+  if (isInAppBrowser()) {
+    body.innerHTML = qrAlert("Buka halaman ini langsung di Chrome atau Safari agar perangkat tidak terkunci.");
+    return;
+  }
+
+  body.innerHTML = '<div class="empty-row">Menyiapkan QR…</div>';
+  try {
+    const local = getDeviceId();
+    if (!local) throw new Error("Penyimpanan peramban tidak tersedia. Nonaktifkan mode privat lalu coba lagi.");
+
+    const ref = doc(db, "users", currentUser.uid);
+    let data = (await getDoc(ref)).data() || {};
+    if (!data.deviceId) {
+      try {
+        await updateDoc(ref, { deviceId: local });
+        data.deviceId = local;
+      } catch (e) {
+        if (e.code !== "permission-denied") throw e;
+        data = (await getDoc(ref)).data() || {};
+        if (!data.deviceId) throw e;
+      }
+    }
+    if (!qrDrawerOpen()) return;
+
+    if (data.deviceId !== local) {
+      body.innerHTML = qrAlert("Perangkat tidak cocok. Hubungi Admin untuk reset perangkat.");
+      return;
+    }
+
+    let token = data.qrToken;
+    if (!token) {
+      token = newToken();
+      await updateDoc(ref, { qrToken: token });
+    }
+    await loadScript(QRGEN_SRC);
+    if (!qrDrawerOpen()) return;
+
+    const name = accountName({ ...data, uid: currentUser.uid });
+    body.innerHTML = `
+      <div class="qr-panel">
+        <div class="qr-clock mono" id="qrClock">--:--:--</div>
+        <div class="qr-meta mono"><span>QR berganti dalam</span><span id="qrCount">30 dtk</span></div>
+        <div class="qr-bar"><div class="qr-bar-fill" id="qrBar"></div></div>
+        <div class="qr-wrap" id="qrWrap">
+          <img id="qrImg" class="qr-img" alt="QR kehadiran" draggable="false">
+        </div>
+        <p class="qr-name">${safe(name)}</p>
+        <p class="qr-note">QR berganti tiap 30 detik dan kabur saat halaman tidak aktif. Tunjukkan langsung kepada admin; tangkapan layar tidak akan diterima.</p>
+      </div>`;
+
+    let cur = null;
+    const paint = () => {
+      const now = Date.now();
+      const st = qrStep(now);
+      if (st !== cur) {
+        cur = st;
+        const q = window.qrcode(0, "M");
+        q.addData(JSON.stringify({ uid: currentUser.uid, token, step: st }));
+        q.make();
+        $id("qrImg").src = q.createDataURL(8, 4);
+      }
+      const rem = QR_STEP_MS - (now % QR_STEP_MS);
+      setText("qrClock", clockStr(new Date(now)));
+      setText("qrCount", `${Math.ceil(rem / 1000)} dtk`);
+      const bar = $id("qrBar");
+      if (bar) bar.style.width = `${(rem / QR_STEP_MS) * 100}%`;
+    };
+    paint();
+    syncQrBlur();
+    QRT.timer = setInterval(() => {
+      if (!qrDrawerOpen() || !$id("qrImg")) return stopQrTimer();
+      paint();
+    }, 250);
+  } catch (err) {
+    console.error(err);
+    body.innerHTML = qrAlert(errText(err));
+  }
+}
+
+/* ---------- Pemindai (admin / operator) ---------- */
+const SC = {
+  open: false, running: false, busy: false, stream: null, timer: null, decode: null,
+  done: new Set(), count: 0, last: "", lastAt: 0
+};
+const TONE_CLASS = { info: "", loading: "is-loading", ok: "is-ok", warn: "is-warn", error: "is-error" };
+
+const setScan = (tone, title, detail = "") => {
+  const el = $id("scanTone");
+  if (el) el.className = `scan-tone ${TONE_CLASS[tone] || ""}`;
+  setText("scanTitle", title);
+  setText("scanDetail", detail);
+};
+
+const setScanMeta = (m) => {
+  const el = $id("scanMeta");
+  if (!el) return;
+  el.hidden = !m;
+  if (!m) return;
+  setText("scanNama", m.nama || "-");
+  setText("scanTime", m.time || "-");
+};
+
+const idlePrompt = () => setScan("info", "Arahkan kamera ke QR anggota", "Atau gunakan Input Manual di bawah kamera.");
+const updateScanCount = () => setText("scanCount", `Tercatat ${SC.count}`);
+
+window.refreshScanSessions = () => {
+  const sel = $id("scanSession");
+  if (!sel || !SC.open) return;
+  const today = localDate();
+  const prev = sel.value;
+  const sessions = [...new Set(cache.filter((x) => x.tanggal === today && x.detailSesi).map((x) => normalizeText(x.detailSesi)))];
+  sel.innerHTML =
+    sessions.map((s) => `<option value="s:${safe(s)}">${safe(s)}</option>`).join("") +
+    '<option value="__new__">Sesi baru…</option>';
+  sel.value = [...sel.options].some((o) => o.value === prev) ? prev : sessions.length ? sel.options[0].value : "__new__";
+  $id("scanNewSession").hidden = sel.value !== "__new__";
+};
+
+window.onScanSessionChange = () => {
+  $id("scanNewSession").hidden = $id("scanSession").value !== "__new__";
+};
+
+const currentSession = () => {
+  const tanggal = localDate();
+  const val = $id("scanSession")?.value || "__new__";
+  if (val.startsWith("s:")) return { tanggal, detailSesi: val.slice(2) };
+  const kategori = $id("scanKategori")?.value || "";
+  const acara = ($id("scanAcara")?.value || "").trim();
+  return { tanggal, detailSesi: acara ? `${kategori}: ${acara}` : kategori };
+};
+
+async function ensureQrDecoder() {
+  if (SC.decode) return;
+  if ("BarcodeDetector" in window) {
+    try {
+      const formats = await window.BarcodeDetector.getSupportedFormats();
+      if (formats.includes("qr_code")) {
+        const det = new window.BarcodeDetector({ formats: ["qr_code"] });
+        SC.decode = async (video) => {
+          const r = await det.detect(video);
+          return r.length ? r[0].rawValue : null;
+        };
+        return;
+      }
+    } catch (e) {
+      console.warn("BarcodeDetector tidak tersedia", e);
+    }
+  }
+  await loadScript(JSQR_SRC);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  SC.decode = async (video) => {
+    const vw = video.videoWidth;
+    if (!vw) return null;
+    const k = Math.min(1, 480 / vw);
+    const w = Math.round(vw * k);
+    const h = Math.round(video.videoHeight * k);
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(video, 0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h);
+    const r = window.jsQR(img.data, w, h, { inversionAttempts: "dontInvert" });
+    return r ? r.data : null;
+  };
+}
+
+async function startCamera(video) {
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error("Peramban tidak mendukung kamera.");
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
+    audio: false
+  });
+  video.srcObject = stream;
+  video.muted = true;
+  video.playsInline = true;
+  await video.play();
+  return stream;
+}
+
+const stopStream = (stream, video) => {
+  stream?.getTracks().forEach((t) => t.stop());
+  if (video) video.srcObject = null;
+};
+
+window.bukaScanner = async () => {
+  if (role !== "admin") return;
+  const overlay = $id("scanOverlay");
+  if (!overlay) return;
+  overlay.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  SC.open = true;
+  SC.running = true;
+  SC.busy = false;
+  updateScanCount();
+  setScanMeta(null);
+  window.refreshScanSessions();
+  setScan("loading", "Menyiapkan kamera");
+  window.loadAccounts();
+
+  const video = $id("scanVideo");
+  const [cam, dec] = await Promise.allSettled([startCamera(video), ensureQrDecoder()]);
+  if (!SC.running) {
+    if (cam.status === "fulfilled") stopStream(cam.value, video);
+    return;
+  }
+  if (cam.status === "fulfilled" && dec.status === "fulfilled") {
+    SC.stream = cam.value;
+    idlePrompt();
+    scanTick();
+    return;
+  }
+  if (cam.status === "fulfilled") stopStream(cam.value, video);
+  const err = cam.status === "rejected" ? cam.reason : dec.reason;
+  console.error(err);
+  setScan("warn", "Pemindai kamera tidak aktif", `${errText(err)} Gunakan Input Manual.`);
+};
+
+function stopScanner() {
+  SC.running = false;
+  SC.busy = false;
+  clearTimeout(SC.timer);
+  stopStream(SC.stream, $id("scanVideo"));
+  SC.stream = null;
+}
+
+window.tutupScanner = () => {
+  stopScanner();
+  SC.open = false;
+  $id("scanOverlay")?.classList.remove("is-open");
+  if (!qrDrawerOpen()) document.body.style.overflow = "";
+};
+
+function scanTick() {
+  if (!SC.running) return;
+  const run = async () => {
+    if (!SC.running) return;
+    if (!SC.busy && !document.hidden) {
+      try {
+        const raw = await SC.decode($id("scanVideo"));
+        if (raw) await onQr(raw);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+    SC.timer = setTimeout(run, 180);
+  };
+  run();
+}
+
+async function scanOutcome(tone, title, detail, meta, hold = 2400) {
+  setScan(tone, title, detail);
+  setScanMeta(meta || null);
+  if (tone === "ok") navigator.vibrate?.(80);
+  else if (tone === "error") navigator.vibrate?.([60, 60, 60]);
+  await sleep(hold);
+  if (!SC.running) return;
+  setScanMeta(null);
+  idlePrompt();
+  SC.busy = false;
+}
+
+async function onQr(raw) {
+  if (SC.busy) return;
+  const now = Date.now();
+  if (raw === SC.last && now - SC.lastAt < 4000) return;
+  SC.last = raw;
+  SC.lastAt = now;
+  SC.busy = true;
+
+  let p = null;
+  try { p = JSON.parse(raw); } catch { /* bukan JSON */ }
+  const uid = typeof p?.uid === "string" ? p.uid : "";
+  const token = typeof p?.token === "string" ? p.token : "";
+  const step = p?.step;
+  if (!/^[A-Za-z0-9_-]{6,128}$/.test(uid) || !/^[a-f0-9]{32}$/.test(token) || !Number.isInteger(step)) {
+    return scanOutcome("error", "QR tidak dikenali", "Format payload tidak valid.", null, 1800);
+  }
+  if (Math.abs(qrStep() - step) > 1) {
+    return scanOutcome("error", "QR kedaluwarsa", "Minta anggota menampilkan QR Saya yang terbaru. Tangkapan layar tidak diterima.", null, 2800);
+  }
+
+  setScan("loading", "Memverifikasi QR");
+  let u;
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    u = snap.exists() ? { uid, ...snap.data() } : null;
+  } catch (e) {
+    return scanOutcome("error", "Data anggota tidak dapat dibaca", errText(e), null, 2600);
+  }
+  if (!u) return scanOutcome("error", "Akun tidak ditemukan", "", null, 2200);
+  if (u.qrToken !== token) {
+    return scanOutcome("error", "QR tidak valid", "Token tidak cocok. Minta anggota membuka ulang QR Saya.", null, 2600);
+  }
+  await catatHadir({ nama: accountName(u), uid }, "qr");
+}
+
+const norm = (v) => normalizeText(v).toLowerCase();
+
+function resolvePerson(raw) {
+  const q = norm(raw);
+  if (!q) return { error: "Isi NIS/ID, nama, atau email." };
+
+  const people = [];
+  const linked = new Set();
+  accountsCache.forEach((u) => {
+    if (u.memberId) linked.add(u.memberId);
+    const nama = accountName(u);
+    people.push({ nama, uid: u.uid, keys: [u.nis, u.uid, u.email, nama].filter(Boolean).map(norm) });
+  });
+  membersCache.forEach((m) => {
+    if (linked.has(m.id)) return;
+    const nama = normalizeText(m.nama);
+    if (people.some((x) => norm(x.nama) === norm(nama))) return;
+    people.push({ nama, uid: null, keys: [m.nis, m.id, nama].filter(Boolean).map(norm) });
+  });
+
+  const exact = people.filter((x) => x.keys.includes(q));
+  if (exact.length === 1) return { person: exact[0] };
+  if (exact.length > 1) return { error: "Lebih dari satu hasil", detail: exact.slice(0, 4).map((x) => x.nama).join(", ") };
+
+  if (q.length >= 3) {
+    const partial = people.filter((x) => norm(x.nama).includes(q));
+    if (partial.length === 1) return { person: partial[0] };
+    if (partial.length > 1) return { error: "Lebih dari satu hasil", detail: partial.slice(0, 4).map((x) => x.nama).join(", ") };
+  }
+  return { error: "Anggota tidak ditemukan", detail: "Periksa NIS/ID, nama, atau email." };
+}
+
+window.catatManual = async (e) => {
+  e.preventDefault();
+  if (!SC.running || SC.busy) return;
+  SC.busy = true;
+  setScan("loading", "Mencari anggota");
+  if (!accountsLoaded) await window.loadAccounts();
+  const r = resolvePerson($id("manualQuery")?.value || "");
+  if (r.error) return scanOutcome("error", r.error, r.detail || "", null, 2600);
+  await catatHadir(r.person, "manual");
+};
+
+async function catatHadir(person, source) {
+  const { tanggal, detailSesi } = currentSession();
+  const nama = normalizeText(person.nama);
+  const clearInput = () => { if (source === "manual" && $id("manualQuery")) $id("manualQuery").value = ""; };
+  if (!detailSesi) return scanOutcome("error", "Sesi belum dipilih", "Pilih sesi atau isi kategori sesi baru.", null, 2400);
+
+  const key = `${tanggal}|${norm(detailSesi)}|${norm(nama)}`;
+  const existing = cache.find(
+    (x) => x.tanggal === tanggal && norm(x.detailSesi) === norm(detailSesi) && norm(x.nama) === norm(nama)
+  );
+  if (existing || SC.done.has(key)) {
+    SC.done.add(key);
+    clearInput();
+    return scanOutcome("warn", `Sudah tercatat: ${nama}`, `Status ${existing?.status || "Hadir"} pada sesi ini`, { nama, time: "-" });
+  }
+
+  const id = `scan_${tanggal}_${slug(detailSesi)}_${person.uid || slug(nama)}`;
+  const payload = {
+    nama, detailSesi, tanggal, status: "Hadir", source,
+    ...(person.uid ? { uid: person.uid } : {}),
+    createdAt: serverTimestamp()
+  };
+  const meta = { nama, time: clockStr() };
+  setScan("loading", "Menyimpan kehadiran");
+  try {
+    await withTimeout(setDoc(doc(db, "absensi", id), payload), 9000);
+    SC.done.add(key);
+    SC.count++;
+    updateScanCount();
+    clearInput();
+    return scanOutcome("ok", `Hadir: ${nama}`, detailSesi, meta);
+  } catch (e) {
+    if (e.code === "timeout") {
+      SC.done.add(key);
+      SC.count++;
+      updateScanCount();
+      clearInput();
+      return scanOutcome("warn", `Menunggu jaringan: ${nama}`, "Data dikirim otomatis saat tersambung. Jangan tutup halaman.", meta, 3200);
+    }
+    console.error(e);
+    return scanOutcome("error", "Gagal menyimpan", errText(e), null, 3000);
+  }
+}

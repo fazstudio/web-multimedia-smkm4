@@ -70,6 +70,14 @@
 						<span>👥</span> Kelola Anggota
 					</button>
 
+					<button class="btn-secondary" id="btnQrSaya" onclick="bukaQrSaya()" data-magnetic title="Tampilkan QR kehadiran Anda">
+						QR Saya
+					</button>
+
+					<button class="btn-primary admin-only-btn" id="btnPindai" onclick="bukaScanner()" data-magnetic title="Pindai QR anggota">
+						Pindai Kehadiran
+					</button>
+
 					<a href="#" class="logout-btn" onclick="logoutPortal();return false" data-magnetic title="Keluar dari portal">
 						Keluar
 					</a>
@@ -268,7 +276,29 @@
 							<div class="empty-row" style="padding: 20px;">Memuat anggota…</div>
 						</div>
 					</div>
+
+					<div class="form-group" style="margin-top: 12px;">
+						<label>Akun & Perangkat (<span id="totalAccountsCount">0</span>)</label>
+						<div class="member-manage-list" id="accountManageList">
+							<div class="empty-row" style="padding: 20px;">Memuat akun…</div>
+						</div>
+					</div>
 				</div>
+			</div>
+		</aside>
+
+		<!-- Slide-Over: QR Saya (QR dinamis 30 detik + kunci perangkat) -->
+		<aside class="admin-drawer" id="qrDrawer">
+			<div class="drawer-backdrop" onclick="tutupQrSaya()"></div>
+			<div class="drawer-panel glass-panel">
+				<div class="drawer-header">
+					<div>
+						<span class="drawer-eyebrow mono">KEHADIRAN ANGGOTA</span>
+						<h2>QR Saya</h2>
+					</div>
+					<button class="drawer-close-btn" onclick="tutupQrSaya()" aria-label="Tutup">✕</button>
+				</div>
+				<div class="drawer-form" id="qrBody"></div>
 			</div>
 		</aside>
 
@@ -295,6 +325,60 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Pemindai Kehadiran (admin / operator) -->
+		<section class="scan-overlay" id="scanOverlay" aria-label="Pemindai kehadiran">
+			<div class="scan-wrap">
+				<div class="scan-head">
+					<div>
+						<span class="drawer-eyebrow mono">PEMINDAI KEHADIRAN</span>
+						<h2>Scan QR Anggota</h2>
+					</div>
+					<div class="scan-head-right">
+						<span class="scan-count mono" id="scanCount">Tercatat 0</span>
+						<button class="drawer-close-btn" onclick="tutupScanner()" aria-label="Tutup pemindai">✕</button>
+					</div>
+				</div>
+
+				<div class="scan-session form-group">
+					<label for="scanSession">Sesi aktif (hari ini)</label>
+					<select id="scanSession" onchange="onScanSessionChange()"></select>
+					<div class="scan-new-session" id="scanNewSession" hidden>
+						<select id="scanKategori" aria-label="Kategori sesi">
+							<option>Pelatihan Mingguan</option>
+							<option>Event / Liputan</option>
+							<option>Produksi Konten</option>
+							<option>Rapat Evaluasi</option>
+						</select>
+						<input id="scanAcara" placeholder="Nama acara / detail (opsional)" aria-label="Nama acara">
+					</div>
+				</div>
+
+				<div class="scan-cam">
+					<video id="scanVideo" playsinline muted></video>
+					<div class="scan-frame"><span></span><span></span><span></span><span></span></div>
+					<div class="scan-status">
+						<div class="scan-tone" id="scanTone"></div>
+						<div class="scan-status-body">
+							<p class="scan-title" id="scanTitle">Menyiapkan pemindai</p>
+							<p class="scan-detail" id="scanDetail"></p>
+							<dl class="scan-meta mono" id="scanMeta" hidden>
+								<div><dt>Nama</dt><dd id="scanNama"></dd></div>
+								<div><dt>Waktu</dt><dd id="scanTime"></dd></div>
+							</dl>
+						</div>
+					</div>
+				</div>
+
+				<form class="scan-manual" id="scanManual" onsubmit="catatManual(event)" novalidate>
+					<label for="manualQuery">Input Manual</label>
+					<div class="scan-manual-row">
+						<input id="manualQuery" type="text" autocomplete="off" placeholder="NIS / ID, nama, atau email">
+						<button class="btn-primary" type="submit">Catat Hadir</button>
+					</div>
+				</form>
+			</div>
+		</section>
 	</main>
 
 	<script src="motion.js"></script>
