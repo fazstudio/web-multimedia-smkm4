@@ -1,78 +1,114 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-	<title>Masuk Portal — Multimedia SMKM4</title>
-	<link rel="icon" href="logo_MMD.webp">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="theme.css">
-	<link rel="stylesheet" href="login.css">
-	<link rel="stylesheet" href="mobile-fixes.css">
-	<script src="ui.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Masuk Dashboard — Multimedia SMKM4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="login.css" />
+  <link rel="stylesheet" href="mobile-fixes.css" />
+  <style>
+    [hidden] { display: none !important; }
+    .btn-google {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .pending-card {
+      text-align: center;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .pending-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      margin-bottom: 14px;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .pending-card h2 {
+      font-size: 1.45rem;
+      margin-bottom: 10px;
+    }
+    .pending-card p {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .pending-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
 </head>
+<body class="login-page">
+  <div class="floating-orb orb-gold login-orb-1" data-parallax="18"></div>
+  <div class="floating-orb orb-teal login-orb-2" data-parallax="-18"></div>
 
-<body>
-	<div class="login-page">
-		<!-- Subtle Ambient Orbs -->
-		<div class="floating-orb orb-gold login-orb-1" data-parallax="12"></div>
-		<div class="floating-orb orb-teal login-orb-2" data-parallax="8"></div>
+  <main class="login-shell">
+    <div class="brand">
+      <a href="index.html" class="brand-logo-link" aria-label="Beranda Multimedia SMKM4">
+        <img src="logo.png" alt="Logo Multimedia SMKM4" width="54" height="54" onerror="this.style.display='none'" />
+      </a>
+      <div class="auth-hud-badge mono">
+        <span class="pulse-dot green"></span>
+        <span>PORTAL AUTENTIKASI • SMKM4</span>
+      </div>
+    </div>
 
-		<div class="login-shell">
-			<!-- Brand Top Header -->
-			<div class="brand" data-reveal="fade">
-				<a href="index.html" class="brand-logo-link" title="Kembali ke Beranda">
-					<img src="logo.png" alt="Logo MMD" width="64" height="64">
-				</a>
-				<div class="auth-hud-badge mono">
-					<span class="pulse-dot green"></span>
-					<span>PORTAL AUTENTIKASI · SMKM4</span>
-				</div>
-			</div>
+    <!-- Kartu Login Google -->
+    <div class="login-card glass-panel" id="loginCard">
+      <div class="login-card-head">
+        <h2>Masuk Dashboard</h2>
+        <p>Gunakan akun Google terdaftar untuk mengakses portal absensi Multimedia.</p>
+      </div>
 
-			<!-- Clean Glassmorphic Login Card -->
-			<div class="login-card glass-panel glow-surface" data-reveal id="loginCard">
-				<div class="login-card-head">
-					<h2>Masuk Dashboard</h2>
-					<p>Gunakan akun terdaftar untuk mengakses data absensi.</p>
-				</div>
+      <button type="button" id="loginBtn" class="btn-primary login-submit btn-google" onclick="handleGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M21.35 11.1h-9.18v2.98h5.27c-.23 1.38-1.57 4.04-5.27 4.04-3.17 0-5.76-2.62-5.76-5.86s2.59-5.86 5.76-5.86c1.81 0 3.02.77 3.71 1.43l2.53-2.44C16.79 3.88 14.69 3 12.17 3 7.06 3 2.92 7.14 2.92 12.26s4.14 9.26 9.25 9.26c5.34 0 8.88-3.75 8.88-9.04 0-.61-.07-1.07-.15-1.38z"/>
+        </svg>
+        <span>Masuk dengan Google</span>
+      </button>
 
-				<button type="button" id="loginBtn" class="btn-primary login-submit btn-google" onclick="handleGoogleLogin()" data-magnetic>
-					<svg class="google-g-icon" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
-						<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.26-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.61z"/>
-						<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/>
-						<path fill="#FBBC05" d="M3.97 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.04l3.01-2.33z"/>
-						<path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
-					</svg>
-					<span>Masuk dengan Google</span>
-				</button>
+      <div class="login-footer">
+        <a href="index.html" class="back-link">← Kembali ke Beranda Utama</a>
+      </div>
+    </div>
 
-				<div class="login-footer">
-					<a class="back-link" href="index.html">← Kembali ke Beranda Utama</a>
-				</div>
-			</div>
+    <!-- Kartu Status Menunggu Persetujuan Admin -->
+    <div class="login-card glass-panel pending-card" id="pendingAuthCard" hidden>
+      <span class="pending-badge mono">MENUNGGU PERSETUJUAN ADMIN</span>
+      <h2>Akun Anda Tidak Terdaftar</h2>
+      <p>
+        Akun Google kamu belum memiliki izin akses ke dashboard absensi.
+        Silakan hubungi Admin Multimedia SMKM4 melalui DM Instagram untuk meminta persetujuan akses.
+      </p>
+      <div class="pending-actions">
+        <a href="https://instagram.com/multimedia.smkm4jkt" target="_blank" rel="noopener noreferrer" class="btn-primary login-submit">
+          Minta Akses via DM IG @multimedia.smkm4jkt ↗
+        </a>
+        <button type="button" class="btn-secondary login-submit" onclick="logoutPendingUser()">
+          Keluar / Ganti Akun Google
+        </button>
+      </div>
+      <div class="login-footer">
+        <a href="index.html" class="back-link">← Kembali ke Beranda Utama</a>
+      </div>
+    </div>
+  </main>
 
-			<div class="login-card glass-panel pending-card" id="pendingAuthCard" hidden>
-				<div class="login-card-head">
-					<span class="pending-warning-badge mono">MENUNGGU AKSES</span>
-					<h2>Akun Anda Tidak Terdaftar</h2>
-					<p>Akses Anda harus disetujui oleh Admin Multimedia SMKM4. Kirim permintaan melalui Instagram untuk mempercepat verifikasi.</p>
-				</div>
-				<a class="login-submit btn-primary" href="https://instagram.com/multimedia.smkm4jkt" target="_blank" rel="noopener noreferrer">
-					<span>Minta Akses via DM IG @multimedia.smkm4jkt</span>
-				</a>
-				<button class="login-submit btn-secondary" type="button" onclick="logoutPendingUser()">
-					<span>Keluar / Ganti Akun Google</span>
-				</button>
-			</div>
-		</div>
-	</div>
-
-	<script src="motion.js"></script>
-	<script type="module" src="auth.js"></script>
+  <script src="ui.js"></script>
+  <script src="motion.js"></script>
+  <script type="module" src="auth.js"></script>
 </body>
-
 </html>
