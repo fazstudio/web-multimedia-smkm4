@@ -458,9 +458,7 @@ window.eksekusiHapusSesi = async () => {
   }
 
   try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-    await reauthenticateWithPopup(currentUser, provider);
+    await reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider());
 
     const targetRows = cache.filter((x) => x.tanggal === tanggal);
     if (targetRows.length === 0) {
