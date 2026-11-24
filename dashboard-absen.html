@@ -314,11 +314,8 @@
 					<button onclick="tutupModalPassword()" style="background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer;">✕</button>
 				</div>
 				<p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; line-height: 1.4;">
-					Anda akan menghapus seluruh data absensi untuk tanggal <strong id="modalTargetTanggal" style="color: var(--text);"></strong>. Masukkan password admin untuk melanjutkan:
+					Anda akan menghapus seluruh data absensi untuk tanggal <strong id="modalTargetTanggal" style="color: var(--text);"></strong>. Verifikasi dengan akun Google untuk melanjutkan:
 				</p>
-				<div class="form-group" style="margin-bottom: 16px;">
-					<input type="password" id="inputPasswordAdmin" placeholder="Password akun admin..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--text); font-size: 0.9rem;">
-				</div>
 				<div style="display: flex; gap: 8px; justify-content: flex-end;">
 					<button type="button" class="btn-secondary" onclick="tutupModalPassword()" style="padding: 8px 16px; font-size: 0.8rem;">Batal</button>
 					<button type="button" class="btn-primary" id="btnKonfirmasiHapus" onclick="eksekusiHapusSesi()" style="padding: 8px 16px; font-size: 0.8rem; background: var(--danger); border-color: var(--danger);">Hapus Permanen</button>

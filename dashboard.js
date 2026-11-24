@@ -18,8 +18,8 @@ import {
   getAuth,
   onAuthStateChanged,
   signOut,
-  EmailAuthProvider,
-  reauthenticateWithCredential
+  GoogleAuthProvider,
+  reauthenticateWithPopup
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -430,15 +430,10 @@ window.hapusSesiPertemuan = (tanggal) => {
   pendingDeleteTanggal = tanggal;
   
   const labelTanggal = document.getElementById("modalTargetTanggal");
-  const inputPass = document.getElementById("inputPasswordAdmin");
   if (labelTanggal) labelTanggal.textContent = tanggal;
-  if (inputPass) inputPass.value = "";
 
   const modal = document.getElementById("passwordModal");
-  if (modal) {
-    modal.style.display = "flex";
-    if (inputPass) inputPass.focus();
-  }
+  if (modal) modal.style.display = "flex";
 };
 
 window.tutupModalPassword = () => {
@@ -448,17 +443,10 @@ window.tutupModalPassword = () => {
 };
 
 window.eksekusiHapusSesi = async () => {
-  const inputPass = document.getElementById("inputPasswordAdmin");
-  const passwordAdmin = inputPass ? inputPass.value.trim() : "";
   const tanggal = pendingDeleteTanggal;
 
-  if (!passwordAdmin) {
-    alert("Password tidak boleh kosong!");
-    return;
-  }
-
   const currentUser = auth.currentUser;
-  if (!currentUser || !currentUser.email) {
+  if (!currentUser) {
     alert("Sesi login tidak valid. Silakan login ulang.");
     return;
   }
@@ -470,8 +458,9 @@ window.eksekusiHapusSesi = async () => {
   }
 
   try {
-    const credential = EmailAuthProvider.credential(currentUser.email, passwordAdmin);
-    await reauthenticateWithCredential(currentUser, credential);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    await reauthenticateWithPopup(currentUser, provider);
 
     const targetRows = cache.filter((x) => x.tanggal === tanggal);
     if (targetRows.length === 0) {
@@ -489,9 +478,9 @@ window.eksekusiHapusSesi = async () => {
     else alert(`Sesi tanggal ${tanggal} berhasil dihapus.`);
 
   } catch (err) {
-    console.error("Autentikasi Gagal:", err);
-    if (window.toast) window.toast("Password admin salah! Penghapusan dibatalkan.", "error");
-    else alert("Password admin salah. Aksi hapus dibatalkan.");
+    console.error("Autentikasi Google Gagal:", err);
+    if (window.toast) window.toast("Verifikasi Google dibatalkan atau gagal. Penghapusan dibatalkan.", "error");
+    else alert("Verifikasi Google dibatalkan atau gagal. Aksi hapus dibatalkan.");
   } finally {
     if (btnHapus) {
       btnHapus.disabled = false;
