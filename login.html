@@ -40,30 +40,9 @@
 					<p>Gunakan akun terdaftar untuk mengakses data absensi.</p>
 				</div>
 
-				<form onsubmit="handleLogin(event)" id="loginForm">
-					<div class="input-group">
-						<label for="username">Alamat Email</label>
-						<div class="input-field-wrapper">
-							<span class="input-icon">✉</span>
-							<input id="username" type="email" autocomplete="username" required placeholder="nama@gmail.com">
-						</div>
-					</div>
-
-					<div class="input-group">
-						<label for="password">Kata Sandi</label>
-						<div class="input-field-wrapper">
-							<span class="input-icon">🔒</span>
-							<input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
-							<button type="button" class="btn-toggle-pwd" id="togglePwd" aria-label="Lihat Password" onclick="togglePasswordVisibility()">
-								👁
-							</button>
-						</div>
-					</div>
-
-					<button id="loginBtn" class="login-submit btn-primary" type="submit" data-magnetic>
-						<span>Masuk Dashboard ↗</span>
-					</button>
-				</form>
+				<button id="loginBtn" class="login-submit btn-primary" type="button" onclick="handleGoogleLogin()" data-magnetic>
+					<span>Masuk dengan Google</span>
+				</button>
 
 				<div class="login-footer">
 					<a class="back-link" href="index.html">← Kembali ke Beranda Utama</a>

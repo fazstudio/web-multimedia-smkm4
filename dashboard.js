@@ -280,17 +280,28 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists()) throw new Error("ROLE_MISSING");
+    const ref = doc(db, "users", user.uid);
+    let snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        role: "anggota",
+        createdAt: serverTimestamp()
+      });
+      snap = await getDoc(ref);
+    }
 
     role = snap.data().role;
-    if (!["admin", "member"].includes(role)) throw new Error("ROLE_INVALID");
+    if (role === "member") role = "anggota";
+    if (!["admin", "anggota"].includes(role)) throw new Error("ROLE_INVALID");
 
     localStorage.setItem("role", role);
     document.body.dataset.role = role;
     currentUser = user;
 
-    if (role === "member") {
+    if (role === "anggota") {
       document.querySelector(".admin-drawer")?.remove();
       document.getElementById("scanOverlay")?.remove();
       document.querySelectorAll(".admin-only-btn").forEach((el) => el.remove());

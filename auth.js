@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQzYNswWXQNLiipZA9I3s1fXje5ZzR5tA",
@@ -16,42 +16,50 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Show / Hide Password Toggle
-window.togglePasswordVisibility = () => {
-  const pwdInput = document.getElementById("password");
-  const toggleBtn = document.getElementById("togglePwd");
-  if (!pwdInput) return;
+const IN_APP_RE = /WhatsApp|Instagram|FBAN|FBAV|\bLine\b|\bwv\b/i;
+const IN_APP_MESSAGE = "Buka halaman ini langsung di Chrome atau Safari agar sesi dan perangkat tidak terkunci.";
 
-  if (pwdInput.type === "password") {
-    pwdInput.type = "text";
-    if (toggleBtn) toggleBtn.textContent = "🙈";
-  } else {
-    pwdInput.type = "password";
-    if (toggleBtn) toggleBtn.textContent = "👁";
-  }
+const isInAppBrowser = () => IN_APP_RE.test(navigator.userAgent || "");
+const showAuthMessage = (message, type = "error") => {
+  if (window.toast) window.toast(message, type, 4500);
+  else alert(message);
 };
 
-// Login Handler
-window.handleLogin = async (e) => {
-  e.preventDefault();
+// Google Sign-In Handler
+window.handleGoogleLogin = async () => {
+  if (isInAppBrowser()) {
+    showAuthMessage(IN_APP_MESSAGE);
+    return;
+  }
+
   const btn = document.getElementById("loginBtn");
   const card = document.getElementById("loginCard");
-  const email = document.getElementById("username").value.trim();
-  const pass = document.getElementById("password").value;
-
-  if (!email || !pass) return;
 
   btn.disabled = true;
-  btn.innerHTML = `<span>Memverifikasi Akun…</span>`;
+  btn.innerHTML = `<span>Memverifikasi Akun Google…</span>`;
 
   try {
-    const { user } = await signInWithEmailAndPassword(auth, email, pass);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const { user } = await signInWithPopup(auth, provider);
+
     const snap = await getDoc(doc(db, "users", user.uid));
+    let role;
+    if (!snap.exists()) {
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        role: "anggota",
+        createdAt: serverTimestamp()
+      });
+      role = "anggota";
+    } else {
+      role = snap.data().role;
+    }
 
-    if (!snap.exists()) throw new Error("ROLE_MISSING");
-
-    const role = snap.data().role;
-    if (!["admin", "member"].includes(role)) throw new Error("ROLE_INVALID");
+    if (!["admin", "anggota", "member"].includes(role)) throw new Error("ROLE_INVALID");
+    if (role === "member") role = "anggota";
 
     localStorage.setItem("role", role);
     localStorage.removeItem("session");
@@ -74,17 +82,48 @@ window.handleLogin = async (e) => {
     }
 
     const errorMsg =
-      err.message === "ROLE_MISSING"
-        ? "Akun Auth belum memiliki role di database users."
-        : "Email atau kata sandi tidak valid. Periksa kembali.";
-
-    if (window.toast) {
-      window.toast(errorMsg, "error", 4500);
-    } else {
-      alert(errorMsg);
-    }
+      err.message === "ROLE_INVALID"
+        ? "Role akun tidak dikenali."
+        : "Google Sign-In gagal atau dibatalkan.";
+    showAuthMessage(errorMsg);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `<span>Masuk Dashboard ↗</span>`;
+    btn.innerHTML = `<span>Masuk dengan Google</span>`;
   }
 };
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  if (isInAppBrowser()) {
+    showAuthMessage(IN_APP_MESSAGE);
+    return;
+  }
+
+  try {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    let role;
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        role: "anggota",
+        createdAt: serverTimestamp()
+      });
+      role = "anggota";
+    } else {
+      role = snap.data().role;
+    }
+
+    if (role === "member") role = "anggota";
+    if (!["admin", "anggota"].includes(role)) throw new Error("ROLE_INVALID");
+
+    localStorage.setItem("role", role);
+    location.href = "dashboard-absen.html";
+  } catch (err) {
+    console.error(err);
+    await signOut(auth).catch(() => {});
+    localStorage.removeItem("role");
+  }
+});
