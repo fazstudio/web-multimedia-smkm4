@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -12,15 +12,16 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth,
   onAuthStateChanged,
   signOut,
   GoogleAuthProvider,
   reauthenticateWithPopup
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQzYNswWXQNLiipZA9I3s1fXje5ZzR5tA",
@@ -45,6 +46,7 @@ let pendingDeleteTanggal = null;
 let currentUser = null;
 let accountsCache = [];
 let accountsLoaded = 0;
+let pendingUsersCache = [];
 
 // Logout Function
 window.logoutPortal = async () => {
@@ -283,19 +285,17 @@ onAuthStateChanged(auth, async (user) => {
     const ref = doc(db, "users", user.uid);
     let snap = await getDoc(ref);
     if (!snap.exists()) {
-      await setDoc(ref, {
-        uid: user.uid,
-        name: user.displayName,
-        email: user.email,
-        role: "anggota",
-        createdAt: serverTimestamp()
-      });
-      snap = await getDoc(ref);
+      localStorage.removeItem("role");
+      location.href = "login.html";
+      return;
     }
 
     role = snap.data().role;
-    if (role === "member") role = "anggota";
-    if (!["admin", "anggota"].includes(role)) throw new Error("ROLE_INVALID");
+    if (role === "pending" || !["admin", "anggota"].includes(role)) {
+      localStorage.removeItem("role");
+      location.href = "login.html";
+      return;
+    }
 
     localStorage.setItem("role", role);
     document.body.dataset.role = role;
@@ -314,7 +314,6 @@ onAuthStateChanged(auth, async (user) => {
     boot();
   } catch (err) {
     console.error(err);
-    await signOut(auth).catch(() => {});
     localStorage.removeItem("role");
     location.href = "login.html";
   }
@@ -324,6 +323,14 @@ function boot() {
   const month = String(new Date().getMonth() + 1).padStart(2, "0");
   const filterBulan = document.getElementById("filterBulan");
   if (filterBulan) filterBulan.value = month;
+
+  if (role === "admin") {
+    const pendingQuery = query(collection(db, "users"), where("role", "==", "pending"));
+    onSnapshot(pendingQuery, (snap) => {
+      pendingUsersCache = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+      window.renderPendingApprovals?.();
+    }, (err) => console.error("Gagal memuat permintaan akses:", err));
+  }
 
   const dateInput = document.getElementById("tanggal");
   if (dateInput) dateInput.valueAsDate = new Date();
@@ -338,6 +345,7 @@ function boot() {
     if (typeof window.renderListAnggotaModal === "function") window.renderListAnggotaModal();
     if (typeof window.renderFormMembers === "function") window.renderFormMembers();
     window.renderAccountList?.();
+    window.renderPendingApprovals?.();
   });
 
   const q = query(collection(db, "absensi"), orderBy("createdAt", "desc"));
@@ -1028,6 +1036,114 @@ const accountName = (u) => {
 };
 
 /* ---------- Akun & perangkat (Admin) ---------- */
+window.renderPendingApprovals = () => {
+  if (role !== "admin") return;
+  const count = pendingUsersCache.length;
+  const badge = $id("pendingApprovalBadge");
+  if (badge) {
+    badge.textContent = count > 0 ? String(count) : "";
+    badge.hidden = count === 0;
+  }
+
+  const banner = $id("pendingApprovalBanner");
+  if (banner) {
+    banner.hidden = count === 0;
+    banner.textContent = count > 0
+      ? `${count} permintaan akses menunggu persetujuan.`
+      : "";
+  }
+
+  const container = $id("pendingAccessSection");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const heading = document.createElement("div");
+  heading.className = "mono";
+  heading.style.cssText = "font-size:0.72rem;font-weight:800;margin-bottom:8px;";
+  heading.textContent = "Permintaan Akses Masuk";
+  container.appendChild(heading);
+
+  if (!count) {
+    const empty = document.createElement("div");
+    empty.className = "empty-row";
+    empty.textContent = "Tidak ada permintaan akses baru.";
+    container.appendChild(empty);
+    return;
+  }
+
+  pendingUsersCache.forEach((u) => {
+    const row = document.createElement("div");
+    row.className = "account-row";
+    row.style.flexWrap = "wrap";
+
+    const info = document.createElement("div");
+    info.className = "account-info";
+    const name = document.createElement("span");
+    name.className = "member-item-name";
+    name.textContent = u.nama || u.name || u.email || u.uid;
+    const meta = document.createElement("span");
+    meta.className = "account-meta mono";
+    meta.textContent = u.email || u.uid;
+    info.append(name, meta);
+
+    const link = document.createElement("select");
+    link.className = "account-link";
+    link.setAttribute("aria-label", `Tautkan ${name.textContent} ke anggota`);
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = "Tautkan ke anggota (opsional)";
+    link.appendChild(none);
+    membersCache.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.id;
+      option.textContent = normalizeText(m.nama);
+      if (u.memberId === m.id) option.selected = true;
+      link.appendChild(option);
+    });
+
+    const accept = document.createElement("button");
+    accept.type = "button";
+    accept.className = "btn-primary";
+    accept.textContent = "Terima";
+    accept.addEventListener("click", () => window.terimaPermintaan(u.uid, link.value));
+
+    const reject = document.createElement("button");
+    reject.type = "button";
+    reject.className = "btn-delete";
+    reject.textContent = "Tolak";
+    reject.addEventListener("click", () => window.tolakPermintaan(u.uid));
+
+    row.append(info, link, accept, reject);
+    container.appendChild(row);
+  });
+};
+
+window.terimaPermintaan = async (uid, memberId) => {
+  if (role !== "admin") return;
+  try {
+    await updateDoc(doc(db, "users", uid), {
+      role: "anggota",
+      memberId: memberId || null
+    });
+    notify("Permintaan akses diterima.", "success");
+  } catch (err) {
+    console.error(err);
+    notify(errText(err), "error");
+  }
+};
+
+window.tolakPermintaan = async (uid) => {
+  if (role !== "admin") return;
+  if (!confirm("Tolak dan hapus permintaan akses akun ini?")) return;
+  try {
+    await deleteDoc(doc(db, "users", uid));
+    notify("Permintaan akses ditolak.", "success");
+  } catch (err) {
+    console.error(err);
+    notify(errText(err), "error");
+  }
+};
+
 window.loadAccounts = async (force = false) => {
   if (role !== "admin") return;
   if (force || !accountsLoaded || Date.now() - accountsLoaded > 120000) {
@@ -1046,12 +1162,13 @@ window.loadAccounts = async (force = false) => {
 window.renderAccountList = () => {
   const container = $id("accountManageList");
   if (!container) return;
-  setText("totalAccountsCount", String(accountsCache.length));
-  if (!accountsCache.length) {
+  const activeAccounts = accountsCache.filter((u) => u.role !== "pending");
+  setText("totalAccountsCount", String(activeAccounts.length));
+  if (!activeAccounts.length) {
     container.innerHTML = '<div class="empty-row" style="padding: 20px;">Belum ada akun terdaftar.</div>';
     return;
   }
-  const list = [...accountsCache].sort((a, b) => accountName(a).localeCompare(accountName(b), "id"));
+  const list = [...activeAccounts].sort((a, b) => accountName(a).localeCompare(accountName(b), "id"));
   container.innerHTML = "";
   list.forEach((u) => {
     const row = document.createElement("div");

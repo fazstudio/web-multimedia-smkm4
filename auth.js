@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQzYNswWXQNLiipZA9I3s1fXje5ZzR5tA",
@@ -25,6 +25,53 @@ const showAuthMessage = (message, type = "error") => {
   else alert(message);
 };
 
+let pendingListener = null;
+
+const showPendingStatus = () => {
+  const loginCard = document.getElementById("loginCard");
+  const pendingCard = document.getElementById("pendingAuthCard");
+  if (loginCard) loginCard.hidden = true;
+  if (pendingCard) pendingCard.hidden = false;
+};
+
+const hidePendingStatus = () => {
+  const loginCard = document.getElementById("loginCard");
+  const pendingCard = document.getElementById("pendingAuthCard");
+  if (pendingCard) pendingCard.hidden = true;
+  if (loginCard) loginCard.hidden = false;
+};
+
+const listenForApproval = (user) => {
+  if (pendingListener) pendingListener();
+  const ref = doc(db, "users", user.uid);
+  pendingListener = onSnapshot(ref, (snap) => {
+    if (!snap.exists()) {
+      showPendingStatus();
+      return;
+    }
+    const role = snap.data().role;
+    if (role === "admin" || role === "anggota") {
+      localStorage.setItem("role", role);
+      location.href = "dashboard-absen.html";
+      return;
+    }
+    if (role === "pending") showPendingStatus();
+  }, (error) => {
+    console.error(error);
+    showPendingStatus();
+  });
+};
+
+window.logoutPendingUser = async () => {
+  if (pendingListener) {
+    pendingListener();
+    pendingListener = null;
+  }
+  await signOut(auth).catch(() => {});
+  localStorage.removeItem("role");
+  hidePendingStatus();
+};
+
 // Google Sign-In Handler
 window.handleGoogleLogin = async () => {
   if (isInAppBrowser()) {
@@ -44,37 +91,19 @@ window.handleGoogleLogin = async () => {
     const { user } = await signInWithPopup(auth, provider);
 
     const snap = await getDoc(doc(db, "users", user.uid));
-    let role;
     if (!snap.exists()) {
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
-        name: user.displayName,
+        nama: user.displayName || "Anggota Baru",
         email: user.email,
-        role: "anggota",
+        photoURL: user.photoURL || "",
+        role: "pending",
         createdAt: serverTimestamp()
       });
-      role = "anggota";
-    } else {
-      role = snap.data().role;
     }
-
-    if (!["admin", "anggota", "member"].includes(role)) throw new Error("ROLE_INVALID");
-    if (role === "member") role = "anggota";
-
-    localStorage.setItem("role", role);
-    localStorage.removeItem("session");
-
-    if (window.toast) {
-      window.toast("Autentikasi berhasil! Mengalihkan ke dashboard…", "success");
-    }
-
-    setTimeout(() => {
-      location.href = "dashboard-absen.html";
-    }, 400);
+    listenForApproval(user);
   } catch (err) {
     console.error(err);
-    await signOut(auth).catch(() => {});
-
     if (card) {
       card.classList.remove("shake");
       void card.offsetWidth; // Trigger reflow
@@ -102,28 +131,19 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
-    let role;
     if (!snap.exists()) {
       await setDoc(ref, {
         uid: user.uid,
-        name: user.displayName,
+        nama: user.displayName || "Anggota Baru",
         email: user.email,
-        role: "anggota",
+        photoURL: user.photoURL || "",
+        role: "pending",
         createdAt: serverTimestamp()
       });
-      role = "anggota";
-    } else {
-      role = snap.data().role;
     }
-
-    if (role === "member") role = "anggota";
-    if (!["admin", "anggota"].includes(role)) throw new Error("ROLE_INVALID");
-
-    localStorage.setItem("role", role);
-    location.href = "dashboard-absen.html";
+    listenForApproval(user);
   } catch (err) {
     console.error(err);
-    await signOut(auth).catch(() => {});
-    localStorage.removeItem("role");
+    showPendingStatus();
   }
 });
